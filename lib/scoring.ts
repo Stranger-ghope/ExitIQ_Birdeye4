@@ -51,8 +51,9 @@ export function analyzePosition(input: AnalysisRequest, data: BirdeyeSnapshot): 
   const securityScore = clamp((data.mintAuthorityRisk ? 35 : 0) + (data.freezeAuthorityRisk ? 35 : 0) + Math.max(0, (data.topHolderPercent ?? 0) - 20));
 
   // Trade Pressure: buy/sell ratio from Birdeye trade-data endpoint
-  // Ratio <0.6 means sellers dominate (bearish), >1.15 means buyers dominate (bullish)
+  // Simplified: Market Flow - shows if buyers or sellers dominate
   const tradePressureScore = data.buySellRatio === null ? 35 : data.buySellRatio < 0.6 ? 75 : data.buySellRatio < 0.9 ? 55 : data.buySellRatio < 1.15 ? 30 : 15;
+  const tradePressureReason = data.buySellRatio === null ? "Recent trade flow was unavailable." : data.buySellRatio < 0.9 ? "More sellers than buyers." : data.buySellRatio < 1.15 ? "Balanced buying and selling." : "More buyers than sellers.";
 
   // PnL Context: entry-aware profit/loss affects exit decisions
   // Large gains may warrant taking profit; large losses may indicate cutting losses
@@ -62,11 +63,19 @@ export function analyzePosition(input: AnalysisRequest, data: BirdeyeSnapshot): 
     component("Liquidity Stress", liquidityScore, 25, data.liquidity ? `Position equals ${liquidityStress.toFixed(2)}% of reported liquidity.` : "Liquidity was unavailable, so ExitIQ applies a cautious baseline."),
     component("Momentum Decay", momentumScore, 25, data.priceChange24h === null ? "24h price change was unavailable." : `24h price change is ${data.priceChange24h.toFixed(2)}%.`),
     component("Security Risk", securityScore, 20, `Mint authority risk: ${data.mintAuthorityRisk ? "yes" : "no"}. Freeze authority risk: ${data.freezeAuthorityRisk ? "yes" : "no"}.`),
-    component("Trade Pressure", tradePressureScore, 15, data.buySellRatio === null ? "Recent buy/sell pressure was unavailable." : `Buy/sell ratio is ${data.buySellRatio.toFixed(2)}.`),
+    component("Market Flow", tradePressureScore, 15, tradePressureReason),
     component("PnL Context", pnlScore, 15, `Position is ${pnlPercent >= 0 ? "up" : "down"} ${Math.abs(pnlPercent).toFixed(2)}% from entry.`),
   ];
 
-  const exitRiskScore = clamp(components.reduce((total, item) => total + item.score * (item.weight / 100), 0));
+  // Weighted scoring aggregation: Each component contributes proportionally to its weight
+  // Example: Liquidity Stress (25% weight) × Score (85) = 21.25 points to total
+  // Total ExitRisk Score = sum of all weighted component scores (0-100)
+  const weightedComponents = components.map(c => ({
+    ...c,
+    weightedContribution: c.score * (c.weight / 100)
+  }));
+  
+  const exitRiskScore = clamp(weightedComponents.reduce((total, item) => total + item.weightedContribution, 0));
   const verdict = verdictFromScore(exitRiskScore, input.riskProfile);
   const reasons = components.sort((a, b) => b.score - a.score).slice(0, 3).map((item) => `${item.label}: ${item.reason}`);
   const summary = verdict === "HOLD"
@@ -97,7 +106,7 @@ export function analyzePosition(input: AnalysisRequest, data: BirdeyeSnapshot): 
     exitRiskScore,
     verdict,
     summary,
-    components,
+    components: weightedComponents,
     reasons,
     tokenSymbol: data.tokenSymbol,
     tokenName: data.tokenName,

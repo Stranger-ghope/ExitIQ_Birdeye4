@@ -184,7 +184,7 @@ export default function Analyzer() {
                 { label: "Liquidity Stress", score: 0, weight: 25, reason: "Waiting for Birdeye market data." },
                 { label: "Momentum Decay", score: 0, weight: 25, reason: "Waiting for price context." },
                 { label: "Security Risk", score: 0, weight: 20, reason: "Waiting for token security data." },
-                { label: "Trade Pressure", score: 0, weight: 15, reason: "Waiting for trade flow." },
+                { label: "Market Flow", score: 0, weight: 15, reason: "Waiting for trade flow." },
                 { label: "PnL Context", score: 0, weight: 15, reason: "Waiting for entry-aware PnL." },
               ]).map((component) => (
                 <div className="component-row" key={component.label}>
@@ -195,7 +195,10 @@ export default function Analyzer() {
                   <div className="bar">
                     <span style={{ width: `${component.score}%` }} />
                   </div>
-                  <b>{component.score}</b>
+                  <div className="score-display">
+                    <b>{component.score}</b>
+                    <small className="weighted">+{component.weightedContribution?.toFixed(1) || "0.0"}</small>
+                  </div>
                 </div>
               ))}
             </div>

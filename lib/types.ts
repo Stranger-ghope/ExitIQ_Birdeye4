@@ -12,6 +12,7 @@ export type RiskComponent = {
   score: number;
   weight: number;
   reason: string;
+  weightedContribution?: number; // Technical depth: shows exact contribution to total score
 };
 
 export type Verdict = "HOLD" | "WATCH" | "TRIM" | "EXIT RISK";
