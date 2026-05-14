@@ -49,6 +49,7 @@ export function analyzePosition(input: AnalysisRequest, data: BirdeyeSnapshot): 
   // Mint authority and freeze authority are red flags for rug potential
   // Top holder concentration >20% indicates centralization risk
   const securityScore = clamp((data.mintAuthorityRisk ? 35 : 0) + (data.freezeAuthorityRisk ? 35 : 0) + Math.max(0, (data.topHolderPercent ?? 0) - 20));
+  const securityVerdict = securityScore < 20 ? "Safe" : securityScore < 40 ? "Low Risk" : securityScore < 60 ? "Moderate Risk" : "Not Safe";
 
   // Trade Pressure: buy/sell ratio from Birdeye trade-data endpoint
   // Simplified: Market Flow - shows if buyers or sellers dominate
@@ -62,7 +63,7 @@ export function analyzePosition(input: AnalysisRequest, data: BirdeyeSnapshot): 
   const components = [
     component("Liquidity Stress", liquidityScore, 25, data.liquidity ? `Position equals ${liquidityStress.toFixed(2)}% of reported liquidity.` : "Liquidity was unavailable, so ExitIQ applies a cautious baseline."),
     component("Momentum Decay", momentumScore, 25, data.priceChange24h === null ? "24h price change was unavailable." : `24h price change is ${data.priceChange24h.toFixed(2)}%.`),
-    component("Security Risk", securityScore, 20, `Mint authority risk: ${data.mintAuthorityRisk ? "yes" : "no"}. Freeze authority risk: ${data.freezeAuthorityRisk ? "yes" : "no"}.`),
+    component("Security Risk", securityScore, 20, `Mint authority risk: ${data.mintAuthorityRisk ? "yes" : "no"}. Freeze authority risk: ${data.freezeAuthorityRisk ? "yes" : "no"}. ${securityVerdict}.`),
     component("Market Flow", tradePressureScore, 15, tradePressureReason),
     component("PnL Context", pnlScore, 15, `Position is ${pnlPercent >= 0 ? "up" : "down"} ${Math.abs(pnlPercent).toFixed(2)}% from entry.`),
   ];
