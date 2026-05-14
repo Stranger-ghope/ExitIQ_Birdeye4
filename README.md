@@ -27,7 +27,7 @@
 | **Project** | ExitIQ |
 | **Competition** | Birdeye Sprint 4 (May 9 – May 16, 2026) |
 | **Category** | Post-entry Risk Assessment |
-| **Live URL** | [Coming Soon](https://github.com/Stranger-ghope/ExitIQ_Birdeye4) |
+| **Live URL** | [exitiq.vercel.app](https://exitiq.vercel.app/) |
 | **Demo Video** | [Coming Soon](#) |
 | **Tweet 1** | [Coming Soon](#) |
 | **Tweet 2** | [Coming Soon](#) |
