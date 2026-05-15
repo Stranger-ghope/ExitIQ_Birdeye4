@@ -87,7 +87,7 @@ export async function runBirdeyeAnalysis(input: AnalysisRequest, apiKey: string)
   const [price, overview, security, tradeData] = await Promise.allSettled([
     getBirdeye("/defi/price", { address, include_liquidity: "true" }, apiKey),
     getBirdeye("/defi/token_overview", { address }, apiKey),
-    getBirdeye("/defi/token_security", { address }, apiKey),
+    getBirdeye("/defi/token_security", { address, "x-chain": "solana" }, apiKey),
     getBirdeye("/defi/v3/token/trade-data/single", { address }, apiKey),
   ]);
 
