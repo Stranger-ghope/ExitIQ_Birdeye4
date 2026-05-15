@@ -18,35 +18,43 @@ async function getBirdeye(path: string, params: Record<string, string>, apiKey: 
   Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, value));
 
   for (let attempt = 0; attempt <= retries; attempt++) {
-    const response = await fetch(url, {
-      headers: {
-        "X-API-KEY": apiKey,
-        "x-chain": "solana",
-        accept: "application/json",
-      },
-      cache: "no-store",
-    });
+    try {
+      const response = await fetch(url, {
+        headers: {
+          "X-API-KEY": apiKey,
+          "x-chain": "solana",
+          accept: "application/json",
+        },
+        cache: "no-store",
+      });
 
-    const latencyMs = performance.now() - startTime;
+      const latencyMs = performance.now() - startTime;
 
-    if (response.ok) {
-      const data = await response.json();
-      // Count data points as a proxy for data richness
-      const dataPoints = countDataPoints(data);
-      return { endpoint: path, success: true, latencyMs, dataPoints, data };
+      if (response.ok) {
+        const data = await response.json();
+        // Count data points as a proxy for data richness
+        const dataPoints = countDataPoints(data);
+        return { endpoint: path, success: true, latencyMs, dataPoints, data };
+      }
+
+      if (response.status === 429 && attempt < retries) {
+        const delayMs = 1000 * Math.pow(2, attempt);
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+        continue;
+      }
+
+      if (response.status === 429) {
+        console.error(`Birdeye API rate limit exceeded for ${path}`);
+        throw new Error("Birdeye API rate limit exceeded. Please wait a few seconds and try again.");
+      }
+
+      console.error(`Birdeye API error for ${path}: ${response.status} ${response.statusText}`);
+      return { endpoint: path, success: false, latencyMs, dataPoints: 0, data: null };
+    } catch (error) {
+      const latencyMs = performance.now() - startTime;
+      console.error(`Birdeye API fetch error for ${path}:`, error);
+      return { endpoint: path, success: false, latencyMs, dataPoints: 0, data: null };
     }
-
-    if (response.status === 429 && attempt < retries) {
-      const delayMs = 1000 * Math.pow(2, attempt);
-      await new Promise((resolve) => setTimeout(resolve, delayMs));
-      continue;
-    }
-
-    if (response.status === 429) {
-      throw new Error("Birdeye API rate limit exceeded. Please wait a few seconds and try again.");
-    }
-
-    return { endpoint: path, success: false, latencyMs, dataPoints: 0, data: null };
   }
 
   return { endpoint: path, success: false, latencyMs: performance.now() - startTime, dataPoints: 0, data: null };
