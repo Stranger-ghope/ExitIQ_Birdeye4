@@ -1,14 +1,22 @@
 <p align="center">
+  <img src="public/sprint4.webp" alt="Birdeye Data Sprint 4" width="100%" />
+</p>
+
+<p align="center">
+  <img src="public/birdeye.png" alt="Birdeye" width="50%" />
+</p>
+
+<p align="center">
   <h1 align="center">📊 ExitIQ</h1>
 </p>
 
 <p align="center">
   <strong>Birdeye-powered position risk copilot for Solana</strong><br/>
-  Post-entry risk assessment · Liquidity stress · Security scoring · Real-time monitoring
+  Post-entry risk assessment · Liquidity stress · Momentum decay · Real-time monitoring
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Birdeye_API-4_Endpoints-00ffc8?style=for-the-badge" alt="Birdeye API" />
+  <img src="https://img.shields.io/badge/Birdeye_API-3_Endpoints-00ffc8?style=for-the-badge" alt="Birdeye API" />
   <img src="https://img.shields.io/badge/API_Calls-50%2B_Verified-00ffc8?style=for-the-badge" alt="API Calls" />
   <img src="https://img.shields.io/badge/Framework-Next.js_16-black?style=for-the-badge&logo=nextdotjs&logoColor=white" alt="Next.js" />
   <img src="https://img.shields.io/badge/Language-TypeScript-blue?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
@@ -37,16 +45,16 @@
 
 ## What It Does
 
-ExitIQ turns Birdeye's real-time Solana APIs into a post-entry risk assessment workflow. Most tools help traders find entries. ExitIQ solves the post-entry problem: deciding when a live position has become risky enough to hold, watch, trim, or exit based on liquidity stress, momentum decay, security risk, and sell pressure.
+ExitIQ turns Birdeye's real-time Solana APIs into a post-entry risk assessment workflow. Most tools help traders find entries. ExitIQ solves the post-entry problem: deciding when a live position has become risky enough to hold, watch, trim, or exit based on liquidity stress, momentum decay, market flow, and PnL context.
 
 ### Pipeline
 
 ```
-User Input → Birdeye API (4 endpoints) → Risk Scoring → Verdict → Position Sizing → Real-time Monitoring
+User Input → Birdeye API (3 endpoints) → Risk Scoring → Verdict → Position Sizing → Real-time Monitoring
 ```
 
 1. **User enters** token address, entry price, position size, and risk profile
-2. **Fetch Birdeye data** via 4 concurrent endpoints with retry logic
+2. **Fetch Birdeye data** via 3 concurrent endpoints with retry logic
 3. **Calculate ExitRisk score** using weighted risk components
 4. **Generate verdict** (HOLD/WATCH/TRIM/EXIT) based on risk profile
 5. **Position sizing recommendations** based on liquidity stress
@@ -60,10 +68,9 @@ User Input → Birdeye API (4 endpoints) → Risk Scoring → Verdict → Positi
 |---|---|---|
 | 1 | `GET /defi/price` | Real-time price and liquidity |
 | 2 | `GET /defi/token_overview` | Volume, holders, metadata |
-| 3 | `GET /defi/token_security` | Mint/freeze authority, holder concentration |
-| 4 | `GET /defi/v3/token/trade-data/single` | Buy/sell pressure |
+| 3 | `GET /defi/v3/token/trade-data/single` | Buy/sell pressure |
 
-**4 Birdeye endpoints · Concurrent fetching with retry logic**
+**3 Birdeye endpoints · Concurrent fetching with retry logic**
 
 ### ✅ 50+ API Calls Verified
 
@@ -75,10 +82,9 @@ Auto-refresh every 30 seconds ensures 50+ API calls for competition qualificatio
 
 | Feature | Description |
 |---|---|
-| 📊 **ExitRisk Score** | Weighted score from 0-100 combining liquidity, momentum, security, trade pressure, and PnL |
+| 📊 **ExitRisk Score** | Weighted score from 0-100 combining liquidity, momentum, trade pressure, and PnL |
 | 🎯 **Verdict System** | HOLD / WATCH / TRIM / EXIT based on risk profile sensitivity |
 | 📈 **Risk Trend** | Real-time risk direction tracking (↑/↓) with auto-refresh |
-| 🛡️ **Security Scoring** | Contract-level risk detection from Birdeye token_security |
 | 💧 **Liquidity Stress** | Position size relative to available liquidity |
 | 📏 **Position Sizing** | Actionable recommendations based on liquidity depth |
 | 🔄 **Auto-Refresh** | 30-second interval for real-time monitoring |
