@@ -45,12 +45,6 @@ export function analyzePosition(input: AnalysisRequest, data: BirdeyeSnapshot): 
   // Sharp negative momentum indicates selling pressure and potential downside
   const momentumScore = data.priceChange24h === null ? 35 : data.priceChange24h < -25 ? 85 : data.priceChange24h < -10 ? 65 : data.priceChange24h < 0 ? 42 : 18;
 
-  // Security Risk: contract-level risks from Birdeye token_security endpoint
-  // Mint authority and freeze authority are red flags for rug potential
-  // Top holder concentration >20% indicates centralization risk
-  const securityScore = clamp((data.mintAuthorityRisk ? 35 : 0) + (data.freezeAuthorityRisk ? 35 : 0) + Math.max(0, (data.topHolderPercent ?? 0) - 20));
-  const securityVerdict = securityScore < 20 ? "Safe" : securityScore < 40 ? "Low Risk" : securityScore < 60 ? "Moderate Risk" : "Not Safe";
-
   // Trade Pressure: buy/sell ratio from Birdeye trade-data endpoint
   // Simplified: Market Flow - shows if buyers or sellers dominate
   const tradePressureScore = data.buySellRatio === null ? 35 : data.buySellRatio < 0.6 ? 75 : data.buySellRatio < 0.9 ? 55 : data.buySellRatio < 1.15 ? 30 : 15;
@@ -61,15 +55,14 @@ export function analyzePosition(input: AnalysisRequest, data: BirdeyeSnapshot): 
   const pnlScore = pnlPercent > 100 ? 65 : pnlPercent > 50 ? 50 : pnlPercent < -35 ? 80 : pnlPercent < -18 ? 62 : 24;
 
   const components = [
-    component("Liquidity Stress", liquidityScore, 25, data.liquidity ? `Position equals ${liquidityStress.toFixed(2)}% of reported liquidity.` : "Liquidity was unavailable, so ExitIQ applies a cautious baseline."),
-    component("Momentum Decay", momentumScore, 25, data.priceChange24h === null ? "24h price change was unavailable." : `24h price change is ${data.priceChange24h.toFixed(2)}%.`),
-    component("Security Risk", securityScore, 20, `Mint authority risk: ${data.mintAuthorityRisk ? "yes" : "no"}. Freeze authority risk: ${data.freezeAuthorityRisk ? "yes" : "no"}. ${securityVerdict}.`),
-    component("Market Flow", tradePressureScore, 15, tradePressureReason),
-    component("PnL Context", pnlScore, 15, `Position is ${pnlPercent >= 0 ? "up" : "down"} ${Math.abs(pnlPercent).toFixed(2)}% from entry.`),
+    component("Liquidity Stress", liquidityScore, 30, data.liquidity ? `Position equals ${liquidityStress.toFixed(2)}% of reported liquidity.` : "Liquidity was unavailable, so ExitIQ applies a cautious baseline."),
+    component("Momentum Decay", momentumScore, 30, data.priceChange24h === null ? "24h price change was unavailable." : `24h price change is ${data.priceChange24h.toFixed(2)}%.`),
+    component("Market Flow", tradePressureScore, 20, tradePressureReason),
+    component("PnL Context", pnlScore, 20, `Position is ${pnlPercent >= 0 ? "up" : "down"} ${Math.abs(pnlPercent).toFixed(2)}% from entry.`),
   ];
 
   // Weighted scoring aggregation: Each component contributes proportionally to its weight
-  // Example: Liquidity Stress (25% weight) × Score (85) = 21.25 points to total
+  // Example: Liquidity Stress (30% weight) × Score (85) = 25.5 points to total
   // Total ExitRisk Score = sum of all weighted component scores (0-100)
   const weightedComponents = components.map(c => ({
     ...c,
@@ -114,7 +107,6 @@ export function analyzePosition(input: AnalysisRequest, data: BirdeyeSnapshot): 
     birdeyeReceipt: [
       "Live price from /defi/price",
       "Liquidity, market stats, and metadata from /defi/token_overview",
-      "Contract and holder risk from /defi/token_security",
       "Buy/sell pressure from /defi/v3/token/trade-data/single",
     ],
     // Technical depth indicators for judges
