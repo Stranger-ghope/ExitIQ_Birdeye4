@@ -93,10 +93,11 @@ The score ranges from 0 to 100. Higher means the position has higher exit risk.
 
 | Component | Weight | Rationale |
 |---|---:|---|
-| Liquidity Stress | 30% | Position size relative to available liquidity - if >10%, exiting becomes difficult |
-| Momentum Decay | 30% | 24h price change as proxy for trend health - sharp negative momentum indicates selling pressure |
-| Market Flow | 20% | Buy/sell ratio - <0.6 means sellers dominate, >1.15 means buyers dominate |
-| PnL Context | 20% | Entry-aware profit/loss - large gains warrant taking profit, losses may indicate cutting |
+| Liquidity Stress | 25% | Position size relative to available liquidity - if >10%, exiting becomes difficult |
+| Momentum Decay | 25% | 24h price change as proxy for trend health - sharp negative momentum indicates selling pressure |
+| Security Risk | 20% | Contract-level risks - mint/freeze authority flags, top holder concentration >20% |
+| Market Flow | 15% | Buy/sell ratio - <0.6 means sellers dominate, >1.15 means buyers dominate |
+| PnL Context | 15% | Entry-aware profit/loss - large gains warrant taking profit, losses may indicate cutting |
 
 **Verdict thresholds:**
 - `0–24`: HOLD
@@ -113,12 +114,13 @@ The score ranges from 0 to 100. Higher means the position has higher exit risk.
 
 ## Technical Depth: Birdeye API Integration
 
-ExitIQ uses **3 Birdeye endpoints concurrently** with retry logic and data quality tracking:
+ExitIQ uses **4 Birdeye endpoints concurrently** with retry logic and data quality tracking:
 
 | ExitIQ Layer | Birdeye API | Purpose |
 | --- | --- | --- |
 | Live PnL and position value | `/defi/price` | Real-time price and liquidity |
 | Liquidity and market context | `/defi/token_overview` | Volume, holders, metadata |
+| Contract and holder risk | `/defi/token_security` | Mint/freeze authority, concentration |
 | Buy/sell pressure | `/defi/v3/token/trade-data/single` | Trade flow analysis |
 
 **Technical Features:**
