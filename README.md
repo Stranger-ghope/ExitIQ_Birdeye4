@@ -3,7 +3,11 @@
 </p>
 
 <p align="center">
-  <img src="public/birdeye.png" alt="Birdeye" width="50%" />
+  <img src="public/birdeye.png" alt="Birdeye API - 50+ calls verified" width="50%" />
+</p>
+
+<p align="center">
+  <small>Proof of 50+ API calls</small>
 </p>
 
 <p align="center">
