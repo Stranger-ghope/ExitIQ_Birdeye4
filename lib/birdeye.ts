@@ -105,6 +105,7 @@ export async function runBirdeyeAnalysis(input: AnalysisRequest, apiKey: string)
   ];
 
   // Calculate data quality score based on endpoint success and data richness
+  // Note: token_security is optional - may not be available for all tokens
   const succeeded = endpointStatus.filter(e => e.success).length;
   const total = endpointStatus.length;
   const totalDataPoints = endpointStatus.reduce((sum, e) => sum + e.dataPoints, 0);
@@ -112,7 +113,7 @@ export async function runBirdeyeAnalysis(input: AnalysisRequest, apiKey: string)
     score: Math.round((succeeded / total) * 100),
     endpointsSucceeded: succeeded,
     totalEndpoints: total,
-    missingFields: endpointStatus.filter(e => !e.success).map(e => e.endpoint),
+    missingFields: endpointStatus.filter(e => !e.success && e.endpoint !== "/defi/token_security").map(e => e.endpoint),
   };
 
   if (!priceResult || !priceResult.success) {
