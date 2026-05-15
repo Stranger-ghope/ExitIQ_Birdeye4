@@ -41,8 +41,7 @@
 | **Category** | Post-entry Risk Assessment |
 | **Live URL** | [exitiq.vercel.app](https://exitiq.vercel.app/) |
 | **Demo Video** | [Watch Demo](https://youtu.be/0G0QMvfMEDc) |
-| **Tweet 1** | [Coming Soon](#) |
-| **Tweet 2** | [Coming Soon](#) |
+| **Tweet** | [View Post](https://x.com/maineine/status/2055241812713865687?s=20) |
 | **GitHub Repo** | [Stranger-ghope/ExitIQ_Birdeye4](https://github.com/Stranger-ghope/ExitIQ_Birdeye4) |
 
 ---
