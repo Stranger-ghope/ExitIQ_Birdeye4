@@ -83,29 +83,25 @@ function firstNumber(...values: unknown[]): number | null {
 export async function runBirdeyeAnalysis(input: AnalysisRequest, apiKey: string) {
   const address = input.tokenAddress;
 
-  // Fetch 4 Birdeye endpoints concurrently for post-entry risk analysis
-  const [price, overview, security, tradeData] = await Promise.allSettled([
+  // Fetch 3 Birdeye endpoints concurrently for post-entry risk analysis
+  const [price, overview, tradeData] = await Promise.allSettled([
     getBirdeye("/defi/price", { address, include_liquidity: "true" }, apiKey),
     getBirdeye("/defi/token_overview", { address }, apiKey),
-    getBirdeye("/defi/token_security", { address, chain: "solana" }, apiKey),
     getBirdeye("/defi/v3/token/trade-data/single", { address }, apiKey),
   ]);
 
   // Extract endpoint results and status for technical depth visibility
   const priceResult = price.status === "fulfilled" ? price.value : null;
   const overviewResult = overview.status === "fulfilled" ? overview.value : null;
-  const securityResult = security.status === "fulfilled" ? security.value : null;
   const tradeResult = tradeData.status === "fulfilled" ? tradeData.value : null;
 
   const endpointStatus: EndpointStatus[] = [
     priceResult ? { endpoint: priceResult.endpoint, success: priceResult.success, latencyMs: priceResult.latencyMs, dataPoints: priceResult.dataPoints } : { endpoint: "/defi/price", success: false, latencyMs: 0, dataPoints: 0 },
     overviewResult ? { endpoint: overviewResult.endpoint, success: overviewResult.success, latencyMs: overviewResult.latencyMs, dataPoints: overviewResult.dataPoints } : { endpoint: "/defi/token_overview", success: false, latencyMs: 0, dataPoints: 0 },
-    securityResult ? { endpoint: securityResult.endpoint, success: securityResult.success, latencyMs: securityResult.latencyMs, dataPoints: securityResult.dataPoints } : { endpoint: "/defi/token_security", success: false, latencyMs: 0, dataPoints: 0 },
     tradeResult ? { endpoint: tradeResult.endpoint, success: tradeResult.success, latencyMs: tradeResult.latencyMs, dataPoints: tradeResult.dataPoints } : { endpoint: "/defi/v3/token/trade-data/single", success: false, latencyMs: 0, dataPoints: 0 },
   ];
 
   // Calculate data quality score based on endpoint success and data richness
-  // Note: token_security is optional - may not be available for all tokens
   const succeeded = endpointStatus.filter(e => e.success).length;
   const total = endpointStatus.length;
   const totalDataPoints = endpointStatus.reduce((sum, e) => sum + e.dataPoints, 0);
@@ -113,7 +109,7 @@ export async function runBirdeyeAnalysis(input: AnalysisRequest, apiKey: string)
     score: Math.round((succeeded / total) * 100),
     endpointsSucceeded: succeeded,
     totalEndpoints: total,
-    missingFields: endpointStatus.filter(e => !e.success && e.endpoint !== "/defi/token_security").map(e => e.endpoint),
+    missingFields: endpointStatus.filter(e => !e.success).map(e => e.endpoint),
   };
 
   if (!priceResult || !priceResult.success) {
@@ -122,7 +118,6 @@ export async function runBirdeyeAnalysis(input: AnalysisRequest, apiKey: string)
 
   const priceData = (priceResult.data as { data?: Record<string, unknown> })?.data ?? {};
   const overviewData = (overviewResult?.data as { data?: Record<string, unknown> })?.data ?? {};
-  const securityData = (securityResult?.data as { data?: Record<string, unknown> })?.data ?? {};
   const trade = (tradeResult?.data as { data?: Record<string, unknown> })?.data ?? {};
 
   const currentPrice = numberOrNull(priceData.value as number | undefined);
@@ -167,9 +162,9 @@ export async function runBirdeyeAnalysis(input: AnalysisRequest, apiKey: string)
     volume24h: firstNumber(volumeFromOverview, volumeFromTrade, volumeFromPrice),
     priceChange24h: firstNumber(overviewData.priceChange24hPercent, overviewData.priceChange24h, overviewData.priceChange24hPercent, overviewData.priceChange24hUSD, overviewData.priceChange24hAmount),
     holders: numberOrNull(overviewData.holder),
-    topHolderPercent: numberOrNull(securityData.top10HolderPercent) ?? numberOrNull(securityData.top10HolderBalancePercent),
-    mintAuthorityRisk: Boolean(securityData.mintAuthority || securityData.mutableMetadata),
-    freezeAuthorityRisk: Boolean(securityData.freezeAuthority),
+    topHolderPercent: null,
+    mintAuthorityRisk: false,
+    freezeAuthorityRisk: false,
     buySellRatio,
     tokenSymbol: overviewData.symbol as string | undefined,
     tokenName: overviewData.name as string | undefined,

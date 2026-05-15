@@ -140,7 +140,6 @@ export default function Analyzer() {
         <div className="sidebar-footer">
           <span>Price</span>
           <span>Liquidity</span>
-          <span>Security</span>
           <span>Trade flow</span>
         </div>
       </aside>
@@ -181,11 +180,10 @@ export default function Analyzer() {
 
             <div className="component-stack">
               {(result?.components ?? [
-                { label: "Liquidity Stress", score: 0, weight: 25, reason: "Waiting for Birdeye market data." },
-                { label: "Momentum Decay", score: 0, weight: 25, reason: "Waiting for price context." },
-                { label: "Security Risk", score: 0, weight: 20, reason: "Waiting for token security data." },
-                { label: "Market Flow", score: 0, weight: 15, reason: "Waiting for trade flow." },
-                { label: "PnL Context", score: 0, weight: 15, reason: "Waiting for entry-aware PnL." },
+                { label: "Liquidity Stress", score: 0, weight: 30, reason: "Waiting for Birdeye market data." },
+                { label: "Momentum Decay", score: 0, weight: 30, reason: "Waiting for price context." },
+                { label: "Market Flow", score: 0, weight: 20, reason: "Waiting for trade flow." },
+                { label: "PnL Context", score: 0, weight: 20, reason: "Waiting for entry-aware PnL." },
               ]).map((component) => (
                 <div className="component-row" key={component.label}>
                   <div>

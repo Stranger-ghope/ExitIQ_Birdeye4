@@ -89,13 +89,14 @@ Auto-refresh every 30 seconds ensures 50+ API calls for competition qualificatio
 
 ## ExitRisk Scoring Model
 
+The score ranges from 0 to 100. Higher means the position has higher exit risk.
+
 | Component | Weight | Rationale |
 |---|---:|---|
-| Liquidity Stress | 25% | Position size relative to available liquidity - if >10%, exiting becomes difficult |
-| Momentum Decay | 25% | 24h price change as proxy for trend health - sharp negative momentum indicates selling pressure |
-| Security Risk | 20% | Contract-level risks - mint/freeze authority flags, top holder concentration >20% |
-| Trade Pressure | 15% | Buy/sell ratio - <0.6 means sellers dominate, >1.15 means buyers dominate |
-| PnL Context | 15% | Entry-aware profit/loss - large gains warrant taking profit, losses may indicate cutting |
+| Liquidity Stress | 30% | Position size relative to available liquidity - if >10%, exiting becomes difficult |
+| Momentum Decay | 30% | 24h price change as proxy for trend health - sharp negative momentum indicates selling pressure |
+| Market Flow | 20% | Buy/sell ratio - <0.6 means sellers dominate, >1.15 means buyers dominate |
+| PnL Context | 20% | Entry-aware profit/loss - large gains warrant taking profit, losses may indicate cutting |
 
 **Verdict thresholds:**
 - `0–24`: HOLD
@@ -110,14 +111,23 @@ Auto-refresh every 30 seconds ensures 50+ API calls for competition qualificatio
 
 ---
 
-## Technical Depth
+## Technical Depth: Birdeye API Integration
 
-**Concurrent endpoint fetching** with `Promise.allSettled` for resilience
-**Exponential backoff retry** on 429 rate limits (1s, 2s delays)
-**Endpoint status tracking** with latency and data point counts
-**Data quality scoring** based on endpoint success rate (0-100)
-**Extensive field fallbacks** (9+ volume field names, 8+ buy/sell field names) to handle API response variations
-**Inline code comments** explaining scoring logic for judge transparency
+ExitIQ uses **3 Birdeye endpoints concurrently** with retry logic and data quality tracking:
+
+| ExitIQ Layer | Birdeye API | Purpose |
+| --- | --- | --- |
+| Live PnL and position value | `/defi/price` | Real-time price and liquidity |
+| Liquidity and market context | `/defi/token_overview` | Volume, holders, metadata |
+| Buy/sell pressure | `/defi/v3/token/trade-data/single` | Trade flow analysis |
+
+**Technical Features:**
+- **Concurrent endpoint fetching** with `Promise.allSettled` for resilience
+- **Exponential backoff retry** on 429 rate limits (1s, 2s delays)
+- **Endpoint status tracking** with latency and data point counts
+- **Data quality scoring** based on endpoint success rate (0-100)
+- **Extensive field fallbacks** (9+ volume field names, 8+ buy/sell field names) to handle API response variations
+- **Inline code comments** explaining scoring logic for judge transparency
 
 ---
 
